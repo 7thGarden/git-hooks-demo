@@ -1,0 +1,61 @@
+ls .git/hooks/ | grep -v sample
+ls .githooks/
+cat setup.sh
+
+printf 'x = 1   \n# TODO: fix this later\n' > demo_fail.py
+cat demo_fail.py
+git add demo_fail.py
+git commit -m "feat: add failing demo"
+
+#whitespaces errors
+printf 'x = 1\nprint(x)\n' > demo_fail.py
+git add demo_fail.py
+git commit -m "feat: add demo file"
+
+git reset --hard HEAD~1; rm demo_fail.py
+
+#block syntax errors
+echo "def broken(:" > broken.py
+git add broken.py
+git commit -m "feat: add broken file"
+
+git reset HEAD broken.py; rm broken.py
+
+echo "hello" > hello.txt
+git add hello.txt
+git commit -m "added stuff"
+git commit -m "fix bug"
+git commit -m "docs: add hello file"
+
+git reset --hard HEAD~1; rm hello.txt
+
+git log --oneline -3
+cat .commit_log.txt
+
+.git/hooks/pre-push
+
+git checkout -b feat/add-multiply
+.git/hooks/pre-push
+git checkout main
+git branch -D feat/add-multiply
+
+
+git checkout -b feat/wip-demo
+echo "# temp" >> app.py
+git add app.py
+git commit --no-verify -m "wip stuff"
+.git/hooks/pre-push
+# ❌ BLOCKED: Found WIP in recent commits
+git reset --hard HEAD~1
+git checkout main
+git branch -D feat/wip-demo
+
+
+git checkout -b feat/break-tests
+# break one test temporarily:
+sed -i 's/return a + b/return a + b + 999/' app.py
+.git/hooks/pre-push
+# ❌ BLOCKED: Tests failed
+git checkout -- app.py
+git checkout main
+git branch -D feat/break-tests
